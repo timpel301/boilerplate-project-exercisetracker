@@ -40,14 +40,14 @@ app.post('/api/users', (req, res, next) => {
 });
 
 app.post('/api/users/:_id/exercises', async (req, res, next) => {
-  const user = await User.findOne({_id: req.params._id});
+  const user = await User.findOne({ _id: req.params._id });
 
   if (user.log.length > 0) {
     user.count += 1;
   } else {
     user.count = 1;
   }
-  
+
   const description = req.body.description;
   const duration = parseInt(req.body.duration);
   let date;
@@ -60,6 +60,18 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
 
   user.log.push({ description, duration, date });
 
+  user.log.sort((a, b) => {
+    const date1 = new Date(a.date);
+    const date2 = new Date(b.date);
+    if (date1 < date2) {
+      return -1;
+    } else if (date1 > date2) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+
   user.save();
 
   const response = {
@@ -71,13 +83,13 @@ app.post('/api/users/:_id/exercises', async (req, res, next) => {
   };
 
   res.json(response);
-  
+
 });
 
 app.get('/api/users/:_id/logs', async (req, res) => {
 
-  const user = await User.findOne({_id: req.params._id});
-  const {from, to, limit} = req.query;
+  const user = await User.findOne({ _id: req.params._id });
+  const { from, to, limit } = req.query;
 
   let log = user.log;
   if (limit) {
@@ -106,7 +118,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
       }
     }
   };
-  
+
   const response = {
     username: user.username,
     count: user.count,
@@ -115,7 +127,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
   };
 
   res.json(response);
-  
+
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
